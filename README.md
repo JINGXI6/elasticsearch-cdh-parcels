@@ -23,6 +23,7 @@ elasticsearch7.9 cdh-ext-parcels and single machine multi instance
 
 ## 包目录结构
 ### parcels
+``` shell
 ELASTICSEARCH-7.9.0
     ├── build
     ├── config
@@ -45,7 +46,9 @@ ELASTICSEARCH-7.9.0
     │   └── permissions.json
     └── target
         └── ELASTICSEARCH-7.9.0-el7.parcel
+```
 ### csd
+``` shell
 ELASTICSEARCH-7.9.0
     ├── aux
     ├── build.sh
@@ -59,3 +62,4 @@ ELASTICSEARCH-7.9.0
     │   └── control.sh
     └── target
         └── ELASTICSEARCH-7.9.0.jar
+```
