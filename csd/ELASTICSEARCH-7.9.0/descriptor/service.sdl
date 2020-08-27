@@ -1,0 +1,2057 @@
+{
+	"name": "ELASTICSEARCH",
+	"label": "NDC ElasticSearch",
+	"description": "NDC Elastic Search service",
+	"version": "7.9.0",
+	"runAs": {
+		"user": "root",
+		"group": "root"
+	},
+	"maxInstances": 6,
+	"icon": "images/icon.png",
+	"compatibility": {
+		"generation": 1,
+		"cdhVersion": {
+			"min": 5,
+			"max": 6
+		}
+	},
+	"parcel": {
+		"requiredTags": ["elasticsearch"]
+	},
+	"roleWithExternalLinks":["ES_MASTER"],
+	"roles": [{
+		"name": "ES_MASTER_01",
+		"label": "Es Master_01",
+		"pluralLabel": "Elastic Search Master Node",
+		"jvmBased": true,
+		"startRunner": {
+			"program": "scripts/control.sh",
+			"args": ["start"],
+			"environmentVariables" : {
+				"CURRENT_RULE" : "es-master01",
+				"ES_LOG_DIR" : "${path_logs}",
+				"ES_DATA_DIR" : "${path_data}"
+			}
+		},
+		"stopRunner" : {
+			"timeout" : "90000",
+			"runner" : {
+				"program" : "scripts/control.sh",
+				"args" : ["stop"],
+				"environmentVariables" : {
+					"CURRENT_RULE" : "es-master01"
+				}
+			}
+		},
+		"externalLink" : {
+			"name" : "ES_MASTER",
+			"label" : "Es Header",
+			"url" : "http://${host}:${http_port}:/_plugin/head"
+		},
+		"topology" : {
+			"minInstances" : "1",
+			"requiresOddNumberOfInstances" : "false",
+			"placementRules" : [ ]
+		},
+		"logging" : {
+			"dir" : "${path_logs}",
+			"filename" : "${cluster_name}.log",
+			"modifiable" : true,
+			"configName" : "log.dir",
+			"loggingType" : "log4j"
+		},
+		"configWriter": {
+			"generators": [
+			{
+				"filename": "elasticsearch.properties",
+				"configFormat": "properties",
+				"includedParams": [
+					"cluster_name",
+					"path_data",
+					"path_logs",
+					"max_local_storage_nodes",
+					"initial_master_nodes",
+					"discovery.seed_hosts",
+					"http_port",
+					"http_cors_enabled",
+					"http_cors_allow_origin",
+					"network_hosts"
+				],
+				"additionalConfigs" : [
+				{
+					"key" : "node.name",
+					"value" : "${host}-master01"
+				},
+				{
+					"key" : "node.roles",
+					"value" : "[ master ]"
+				}
+				]
+			},
+			{
+				"filename": "jvm.properties",
+				"refreshable" : false,
+				"configFormat": "properties",
+				"includedParams": [
+					"Xms",
+					"Xmx",
+					"UseConcMarkSweepGC",
+					"CMSInitiatingOccupancyFraction",
+					"UseCMSInitiatingOccupancyOnly",
+					"UseG1GC",
+					"G1ReservePercent",
+					"InitiatingHeapOccupancyPercent",
+					"HeapDumpOnOutOfMemoryError",
+					"FatalErrorLogs",
+					"PrintGCDetails",
+					"PrintGCDateStamps",
+					"PrintTenuringDistribution",
+					"PrintGCApplicationStoppedTime",
+					"Xloggc",
+					"UseGCLogFileRotation",
+					"NumberOfGCLogFiles",
+					"GCLogFileSize"	
+				]
+			}
+			]
+		},
+		"parameters": [
+			{
+				"name": "network_hosts",
+				"label": "network_hosts",
+				"description": "Set a custom host for HTTP",
+				"configName": "network.host",
+				"required": "true",
+				"type": "string",
+				"default": "0.0.0.0"
+			},
+			{
+				"name": "http_port",
+				"label": "HTTP port",
+				"description": "Set a custom port for HTTP",
+				"configName": "http.port",
+				"required": "true",
+				"type": "long",
+				"default": "9200"
+			},
+			{
+				"name": "path_data",
+				"label": "Path to data directory",
+				"description": "Path to directory where to store the data (separate multiple locations by comma)",
+				"configName": "path.data",
+				"required": "true",
+				"type": "string",
+				"pathType": "localDataDir",
+				"default": "/var/lib/elasticsearch/es-master01"
+			},
+			{
+				"name": "path_logs",
+				"label": "Path to logs directory",
+				"description": "Path to log files",
+				"configName": "path.logs",
+				"required": "true",
+				"type": "path",
+				"pathType": "localDataDir",
+				"default": "/var/log/elasticsearch/es-master01"
+			},
+			{
+				"name": "Xms",
+				"label": "JVM Xms",
+				"description": "Xms represents the initial size of total heap space",
+				"configName": "Xms",
+				"required": "true",
+				"type": "string",
+				"default": "-Xms2g"
+			},
+			{
+				"name": "Xmx",
+				"label": "JVM Xmx",
+				"description": "Xms represents the maximum size of total heap space",
+				"configName": "Xmx",
+				"required": "true",
+				"type": "string",
+				"default": "-Xmx2g"
+			},
+			{
+				"name": "UseConcMarkSweepGC",
+				"label": "JVM UseConcMarkSweepGC",
+				"description": "Enable ConcurrentMarkSweep (CMS)",
+				"configName": "UseConcMarkSweepGC",
+				"required": "false",
+				"type": "string",
+				"default": "8-13:-XX:+UseConcMarkSweepGC"
+			},
+			{
+				"name": "CMSInitiatingOccupancyFraction",
+				"label": "JVM CMSInitiatingOccupancyFraction",
+				"description": "CMS Initiating Occupancy Fraction",
+				"configName": "CMSInitiatingOccupancyFraction",
+				"required": "false",
+				"type": "string",
+				"default": "8-13:-XX:CMSInitiatingOccupancyFraction=75"
+			},
+			{
+				"name": "UseCMSInitiatingOccupancyOnly",
+				"label": "JVM UseCMSInitiatingOccupancyOnly",
+				"description": "Use CMS Initiating Occupancy Only",
+				"configName": "UseCMSInitiatingOccupancyOnly",
+				"required": "false",
+				"type": "string",
+				"default": "8-13:-XX:+UseCMSInitiatingOccupancyOnly"
+			},
+			{
+				"name": "UseG1GC",
+				"label": "JVM UseG1GC",
+				"description": "Enable G1GC (G1)",
+				"configName": "UseG1GC",
+				"required": "false",
+				"type": "string",
+				"default": "14-:-XX:+UseG1GC"
+			},
+			{
+				"name": "G1ReservePercent",
+				"label": "JVM G1ReservePercent",
+				"description": "G1ReservePercent",
+				"configName": "G1ReservePercent",
+				"required": "false",
+				"type": "string",
+				"default": "14-:-XX:G1ReservePercent=25"
+			},
+			{
+				"name": "InitiatingHeapOccupancyPercent",
+				"label": "JVM InitiatingHeapOccupancyPercent",
+				"description": "InitiatingHeapOccupancyPercent",
+				"configName": "InitiatingHeapOccupancyPercent",
+				"required": "false",
+				"type": "string",
+				"default": "14-:-XX:InitiatingHeapOccupancyPercent=30"
+			},
+			{
+				"name": "HeapDumpOnOutOfMemoryError",
+				"label": "JVM HeapDumpOnOutOfMemoryError",
+				"description": "Generate a heap dump when an allocation from the Java heap fails",
+				"configName": "HeapDumpOnOutOfMemoryError",
+				"required": "false",
+				"type": "string",
+				"default": "-XX:+HeapDumpOnOutOfMemoryError"
+			},
+			{
+				"name": "FatalErrorLogs",
+				"label": "JVM FatalErrorLogs",
+				"description": "specify an alternative path for JVM fatal error logs",
+				"configName": "ErrorFile",
+				"required": "false",
+				"type": "string",
+				"default": "-XX:ErrorFile=logs/hs_err_pid%p.log"
+			},
+			{
+				"name": "PrintGCDetails",
+				"label": "JVM PrintGCDetails",
+				"description": "PrintGCDetails",
+				"configName": "PrintGCDetails",
+				"required": "false",
+				"type": "string",
+				"default": "8:-XX:+PrintGCDetails"
+			},
+			{
+				"name": "PrintGCDateStamps",
+				"label": "JVM PrintGCDateStamps",
+				"description": "PrintGCDateStamps",
+				"configName": "PrintGCDateStamps",
+				"required": "false",
+				"type": "string",
+				"default": "8:-XX:+PrintGCDateStamps"
+			},
+			{
+				"name": "PrintTenuringDistribution",
+				"label": "JVM PrintTenuringDistribution",
+				"description": "PrintTenuringDistribution",
+				"configName": "PrintTenuringDistribution",
+				"required": "false",
+				"type": "string",
+				"default": "8:-XX:+PrintTenuringDistribution"
+			},
+			{
+				"name": "PrintGCApplicationStoppedTime",
+				"label": "JVM PrintGCApplicationStoppedTime",
+				"description": "PrintGCApplicationStoppedTime",
+				"configName": "PrintGCApplicationStoppedTime",
+				"required": "false",
+				"type": "string",
+				"default": "8:-XX:+PrintGCApplicationStoppedTime"
+			},
+			{
+				"name": "Xloggc",
+				"label": "JVM Xloggc",
+				"description": "Xloggc",
+				"configName": "Xloggc",
+				"required": "false",
+				"type": "string",
+				"default": "8:-Xloggc:logs/gc.log"
+			},
+			{
+				"name": "UseGCLogFileRotation",
+				"label": "JVM UseGCLogFileRotation",
+				"description": "UseGCLogFileRotation",
+				"configName": "UseGCLogFileRotation",
+				"required": "false",
+				"type": "string",
+				"default": "8:-XX:+UseGCLogFileRotation"
+			},
+			{
+				"name": "NumberOfGCLogFiles",
+				"label": "JVM NumberOfGCLogFiles",
+				"description": "NumberOfGCLogFiles",
+				"configName": "NumberOfGCLogFiles",
+				"required": "false",
+				"type": "string",
+				"default": "8:-XX:NumberOfGCLogFiles=32"
+			},
+			{
+				"name": "GCLogFileSize",
+				"label": "JVM GCLogFileSize",
+				"description": "GCLogFileSize",
+				"configName": "GCLogFileSize",
+				"required": "false",
+				"type": "string",
+				"default": "8:-XX:GCLogFileSize=64m"
+			}
+		]
+	},{
+		"name": "ES_DATA_01",
+		"label": "Es Data_01",
+		"pluralLabel": "Elastic Search Data Node",
+		"jvmBased": true,
+		"startRunner": {
+			"program": "scripts/control.sh",
+			"args": ["start"],
+			"environmentVariables" : {
+				"CURRENT_RULE" : "es-data01",
+				"ES_LOG_DIR" : "${path_logs}",
+                                "ES_DATA_DIR" : "${path_data}"
+			}
+		},
+		"stopRunner" : {
+			"timeout" : "90000",
+			"runner" : {
+				"program" : "scripts/control.sh",
+				"args" : ["stop"],
+				"environmentVariables" : {
+					"CURRENT_RULE" : "es-data01"
+				}
+			}
+		},
+		"externalLink" : {
+			"name" : "ES_MASTER",
+			"label" : "Es Header",
+			"url" : "http://${host}:${http_port}:/_plugin/head"
+		},
+		"topology" : {
+			"minInstances" : "1",
+			"requiresOddNumberOfInstances" : "false",
+			"placementRules" : [ ]
+		},
+		"logging" : {
+			"dir" : "${path_logs}",
+			"filename" : "${cluster_name}.log",
+			"modifiable" : true,
+			"configName" : "log.dir",
+			"loggingType" : "log4j"
+		},
+		"configWriter": {
+			"generators": [
+			{
+				"filename": "elasticsearch.properties",
+				"configFormat": "properties",
+				"includedParams": [
+					"cluster_name",
+					"path_data",
+					"path_logs",
+					"max_local_storage_nodes",
+					"initial_master_nodes",
+					"discovery.seed_hosts",
+					"http_port",
+					"http_cors_enabled",
+					"http_cors_allow_origin",
+					"network_hosts"
+				],
+				"additionalConfigs" : [
+				{
+					"key" : "node.name",
+					"value" : "${host}-data01"
+				},
+				{
+					"key" : "node.roles",
+					"value" : "[ data ]"
+				}
+				]
+			},
+			{
+				"filename": "jvm.properties",
+				"refreshable" : false,
+				"configFormat": "properties",
+				"includedParams": [
+					"Xms",
+					"Xmx",
+					"UseConcMarkSweepGC",
+					"CMSInitiatingOccupancyFraction",
+					"UseCMSInitiatingOccupancyOnly",
+					"UseG1GC",
+					"G1ReservePercent",
+					"InitiatingHeapOccupancyPercent",
+					"HeapDumpOnOutOfMemoryError",
+					"FatalErrorLogs",
+					"PrintGCDetails",
+					"PrintGCDateStamps",
+					"PrintTenuringDistribution",
+					"PrintGCApplicationStoppedTime",
+					"Xloggc",
+					"UseGCLogFileRotation",
+					"NumberOfGCLogFiles",
+					"GCLogFileSize"	
+				]
+			}
+			]
+		},
+		"parameters": [
+			{
+				"name": "network_hosts",
+				"label": "network_hosts",
+				"description": "Set a custom host for HTTP",
+				"configName": "network.host",
+				"required": "true",
+				"type": "string",
+				"default": "0.0.0.0"
+			},
+			{
+				"name": "http_port",
+				"label": "HTTP port",
+				"description": "Set a custom port for HTTP",
+				"configName": "http.port",
+				"required": "true",
+				"type": "long",
+				"default": "9201"
+			},
+			{
+				"name": "path_data",
+				"label": "Path to data directory",
+				"description": "Path to directory where to store the data (separate multiple locations by comma)",
+				"configName": "path.data",
+				"required": "true",
+				"type": "string",
+				"pathType": "localDataDir",
+				"default": "/var/lib/elasticsearch/es-data01"
+			},
+			{
+				"name": "path_logs",
+				"label": "Path to logs directory",
+				"description": "Path to log files",
+				"configName": "path.logs",
+				"required": "true",
+				"type": "path",
+				"pathType": "localDataDir",
+				"default": "/var/log/elasticsearch/es-data01"
+			},
+			{
+				"name": "Xms",
+				"label": "JVM Xms",
+				"description": "Xms represents the initial size of total heap space",
+				"configName": "Xms",
+				"required": "true",
+				"type": "string",
+				"default": "-Xms2g"
+			},
+			{
+				"name": "Xmx",
+				"label": "JVM Xmx",
+				"description": "Xms represents the maximum size of total heap space",
+				"configName": "Xmx",
+				"required": "true",
+				"type": "string",
+				"default": "-Xmx2g"
+			},
+			{
+				"name": "UseConcMarkSweepGC",
+				"label": "JVM UseConcMarkSweepGC",
+				"description": "Enable ConcurrentMarkSweep (CMS)",
+				"configName": "UseConcMarkSweepGC",
+				"required": "false",
+				"type": "string",
+				"default": "8-13:-XX:+UseConcMarkSweepGC"
+			},
+			{
+				"name": "CMSInitiatingOccupancyFraction",
+				"label": "JVM CMSInitiatingOccupancyFraction",
+				"description": "CMS Initiating Occupancy Fraction",
+				"configName": "CMSInitiatingOccupancyFraction",
+				"required": "false",
+				"type": "string",
+				"default": "8-13:-XX:CMSInitiatingOccupancyFraction=75"
+			},
+			{
+				"name": "UseCMSInitiatingOccupancyOnly",
+				"label": "JVM UseCMSInitiatingOccupancyOnly",
+				"description": "Use CMS Initiating Occupancy Only",
+				"configName": "UseCMSInitiatingOccupancyOnly",
+				"required": "false",
+				"type": "string",
+				"default": "8-13:-XX:+UseCMSInitiatingOccupancyOnly"
+			},
+			{
+				"name": "UseG1GC",
+				"label": "JVM UseG1GC",
+				"description": "Enable G1GC (G1)",
+				"configName": "UseG1GC",
+				"required": "false",
+				"type": "string",
+				"default": "14-:-XX:+UseG1GC"
+			},
+			{
+				"name": "G1ReservePercent",
+				"label": "JVM G1ReservePercent",
+				"description": "G1ReservePercent",
+				"configName": "G1ReservePercent",
+				"required": "false",
+				"type": "string",
+				"default": "14-:-XX:G1ReservePercent=25"
+			},
+			{
+				"name": "InitiatingHeapOccupancyPercent",
+				"label": "JVM InitiatingHeapOccupancyPercent",
+				"description": "InitiatingHeapOccupancyPercent",
+				"configName": "InitiatingHeapOccupancyPercent",
+				"required": "false",
+				"type": "string",
+				"default": "14-:-XX:InitiatingHeapOccupancyPercent=30"
+			},
+			{
+				"name": "HeapDumpOnOutOfMemoryError",
+				"label": "JVM HeapDumpOnOutOfMemoryError",
+				"description": "Generate a heap dump when an allocation from the Java heap fails",
+				"configName": "HeapDumpOnOutOfMemoryError",
+				"required": "false",
+				"type": "string",
+				"default": "-XX:+HeapDumpOnOutOfMemoryError"
+			},
+			{
+				"name": "FatalErrorLogs",
+				"label": "JVM FatalErrorLogs",
+				"description": "specify an alternative path for JVM fatal error logs",
+				"configName": "ErrorFile",
+				"required": "false",
+				"type": "string",
+				"default": "-XX:ErrorFile=logs/hs_err_pid%p.log"
+			},
+			{
+				"name": "PrintGCDetails",
+				"label": "JVM PrintGCDetails",
+				"description": "PrintGCDetails",
+				"configName": "PrintGCDetails",
+				"required": "false",
+				"type": "string",
+				"default": "8:-XX:+PrintGCDetails"
+			},
+			{
+				"name": "PrintGCDateStamps",
+				"label": "JVM PrintGCDateStamps",
+				"description": "PrintGCDateStamps",
+				"configName": "PrintGCDateStamps",
+				"required": "false",
+				"type": "string",
+				"default": "8:-XX:+PrintGCDateStamps"
+			},
+			{
+				"name": "PrintTenuringDistribution",
+				"label": "JVM PrintTenuringDistribution",
+				"description": "PrintTenuringDistribution",
+				"configName": "PrintTenuringDistribution",
+				"required": "false",
+				"type": "string",
+				"default": "8:-XX:+PrintTenuringDistribution"
+			},
+			{
+				"name": "PrintGCApplicationStoppedTime",
+				"label": "JVM PrintGCApplicationStoppedTime",
+				"description": "PrintGCApplicationStoppedTime",
+				"configName": "PrintGCApplicationStoppedTime",
+				"required": "false",
+				"type": "string",
+				"default": "8:-XX:+PrintGCApplicationStoppedTime"
+			},
+			{
+				"name": "Xloggc",
+				"label": "JVM Xloggc",
+				"description": "Xloggc",
+				"configName": "Xloggc",
+				"required": "false",
+				"type": "string",
+				"default": "8:-Xloggc:logs/gc.log"
+			},
+			{
+				"name": "UseGCLogFileRotation",
+				"label": "JVM UseGCLogFileRotation",
+				"description": "UseGCLogFileRotation",
+				"configName": "UseGCLogFileRotation",
+				"required": "false",
+				"type": "string",
+				"default": "8:-XX:+UseGCLogFileRotation"
+			},
+			{
+				"name": "NumberOfGCLogFiles",
+				"label": "JVM NumberOfGCLogFiles",
+				"description": "NumberOfGCLogFiles",
+				"configName": "NumberOfGCLogFiles",
+				"required": "false",
+				"type": "string",
+				"default": "8:-XX:NumberOfGCLogFiles=32"
+			},
+			{
+				"name": "GCLogFileSize",
+				"label": "JVM GCLogFileSize",
+				"description": "GCLogFileSize",
+				"configName": "GCLogFileSize",
+				"required": "false",
+				"type": "string",
+				"default": "8:-XX:GCLogFileSize=64m"
+			}
+		]
+	},{
+		"name": "ES_DATA_02",
+		"label": "Es Data_02",
+		"pluralLabel": "Elastic Search Data Node",
+		"jvmBased": true,
+		"startRunner": {
+			"program": "scripts/control.sh",
+			"args": ["start"],
+			"environmentVariables" : {
+				"CURRENT_RULE" : "es-data02",
+                                "ES_LOG_DIR" : "${path_logs}",
+                                "ES_DATA_DIR" : "${path_data}"
+			}
+		},
+		"stopRunner" : {
+			"timeout" : "90000",
+			"runner" : {
+				"program" : "scripts/control.sh",
+				"args" : ["stop"],
+				"environmentVariables" : {
+					"CURRENT_RULE" : "es-data02"
+				}
+			}
+		},
+		"externalLink" : {
+			"name" : "ES_MASTER",
+			"label" : "Es Header",
+			"url" : "http://${host}:${http_port}:/_plugin/head"
+		},
+		"topology" : {
+			"minInstances" : "0",
+			"requiresOddNumberOfInstances" : "false",
+			"placementRules" : [ ]
+		},
+		"logging" : {
+			"dir" : "${path_logs}",
+			"filename" : "${cluster_name}.log",
+			"modifiable" : true,
+			"configName" : "log.dir",
+			"loggingType" : "log4j"
+		},
+		"configWriter": {
+			"generators": [
+			{
+				"filename": "elasticsearch.properties",
+				"configFormat": "properties",
+				"includedParams": [
+					"cluster_name",
+					"path_data",
+					"path_logs",
+					"max_local_storage_nodes",
+					"initial_master_nodes",
+					"discovery.seed_hosts",
+					"http_port",
+					"http_cors_enabled",
+					"http_cors_allow_origin",
+					"network_hosts"
+				],
+				"additionalConfigs" : [
+				{
+					"key" : "node.name",
+					"value" : "${host}-data02"
+				},
+				{
+					"key" : "node.roles",
+					"value" : "[ data ]"
+				}
+				]
+			},
+			{
+				"filename": "jvm.properties",
+				"refreshable" : false,
+				"configFormat": "properties",
+				"includedParams": [
+					"Xms",
+					"Xmx",
+					"UseConcMarkSweepGC",
+					"CMSInitiatingOccupancyFraction",
+					"UseCMSInitiatingOccupancyOnly",
+					"UseG1GC",
+					"G1ReservePercent",
+					"InitiatingHeapOccupancyPercent",
+					"HeapDumpOnOutOfMemoryError",
+					"FatalErrorLogs",
+					"PrintGCDetails",
+					"PrintGCDateStamps",
+					"PrintTenuringDistribution",
+					"PrintGCApplicationStoppedTime",
+					"Xloggc",
+					"UseGCLogFileRotation",
+					"NumberOfGCLogFiles",
+					"GCLogFileSize"	
+				]
+			}
+			]
+		},
+		"parameters": [
+			{
+				"name": "network_hosts",
+				"label": "network_hosts",
+				"description": "Set a custom host for HTTP",
+				"configName": "network.host",
+				"required": "true",
+				"type": "string",
+				"default": "0.0.0.0"
+			},
+			{
+				"name": "http_port",
+				"label": "HTTP port",
+				"description": "Set a custom port for HTTP",
+				"configName": "http.port",
+				"required": "true",
+				"type": "long",
+				"default": "9202"
+			},
+			{
+				"name": "path_data",
+				"label": "Path to data directory",
+				"description": "Path to directory where to store the data (separate multiple locations by comma)",
+				"configName": "path.data",
+				"required": "true",
+				"type": "string",
+				"pathType": "localDataDir",
+				"default": "/var/lib/elasticsearch/es-data02"
+			},
+			{
+				"name": "path_logs",
+				"label": "Path to logs directory",
+				"description": "Path to log files",
+				"configName": "path.logs",
+				"required": "true",
+				"type": "path",
+				"pathType": "localDataDir",
+				"default": "/var/log/elasticsearch/es-data02"
+			},
+			{
+				"name": "Xms",
+				"label": "JVM Xms",
+				"description": "Xms represents the initial size of total heap space",
+				"configName": "Xms",
+				"required": "true",
+				"type": "string",
+				"default": "-Xms2g"
+			},
+			{
+				"name": "Xmx",
+				"label": "JVM Xmx",
+				"description": "Xms represents the maximum size of total heap space",
+				"configName": "Xmx",
+				"required": "true",
+				"type": "string",
+				"default": "-Xmx2g"
+			},
+			{
+				"name": "UseConcMarkSweepGC",
+				"label": "JVM UseConcMarkSweepGC",
+				"description": "Enable ConcurrentMarkSweep (CMS)",
+				"configName": "UseConcMarkSweepGC",
+				"required": "false",
+				"type": "string",
+				"default": "8-13:-XX:+UseConcMarkSweepGC"
+			},
+			{
+				"name": "CMSInitiatingOccupancyFraction",
+				"label": "JVM CMSInitiatingOccupancyFraction",
+				"description": "CMS Initiating Occupancy Fraction",
+				"configName": "CMSInitiatingOccupancyFraction",
+				"required": "false",
+				"type": "string",
+				"default": "8-13:-XX:CMSInitiatingOccupancyFraction=75"
+			},
+			{
+				"name": "UseCMSInitiatingOccupancyOnly",
+				"label": "JVM UseCMSInitiatingOccupancyOnly",
+				"description": "Use CMS Initiating Occupancy Only",
+				"configName": "UseCMSInitiatingOccupancyOnly",
+				"required": "false",
+				"type": "string",
+				"default": "8-13:-XX:+UseCMSInitiatingOccupancyOnly"
+			},
+			{
+				"name": "UseG1GC",
+				"label": "JVM UseG1GC",
+				"description": "Enable G1GC (G1)",
+				"configName": "UseG1GC",
+				"required": "false",
+				"type": "string",
+				"default": "14-:-XX:+UseG1GC"
+			},
+			{
+				"name": "G1ReservePercent",
+				"label": "JVM G1ReservePercent",
+				"description": "G1ReservePercent",
+				"configName": "G1ReservePercent",
+				"required": "false",
+				"type": "string",
+				"default": "14-:-XX:G1ReservePercent=25"
+			},
+			{
+				"name": "InitiatingHeapOccupancyPercent",
+				"label": "JVM InitiatingHeapOccupancyPercent",
+				"description": "InitiatingHeapOccupancyPercent",
+				"configName": "InitiatingHeapOccupancyPercent",
+				"required": "false",
+				"type": "string",
+				"default": "14-:-XX:InitiatingHeapOccupancyPercent=30"
+			},
+			{
+				"name": "HeapDumpOnOutOfMemoryError",
+				"label": "JVM HeapDumpOnOutOfMemoryError",
+				"description": "Generate a heap dump when an allocation from the Java heap fails",
+				"configName": "HeapDumpOnOutOfMemoryError",
+				"required": "false",
+				"type": "string",
+				"default": "-XX:+HeapDumpOnOutOfMemoryError"
+			},
+			{
+				"name": "FatalErrorLogs",
+				"label": "JVM FatalErrorLogs",
+				"description": "specify an alternative path for JVM fatal error logs",
+				"configName": "ErrorFile",
+				"required": "false",
+				"type": "string",
+				"default": "-XX:ErrorFile=logs/hs_err_pid%p.log"
+			},
+			{
+				"name": "PrintGCDetails",
+				"label": "JVM PrintGCDetails",
+				"description": "PrintGCDetails",
+				"configName": "PrintGCDetails",
+				"required": "false",
+				"type": "string",
+				"default": "8:-XX:+PrintGCDetails"
+			},
+			{
+				"name": "PrintGCDateStamps",
+				"label": "JVM PrintGCDateStamps",
+				"description": "PrintGCDateStamps",
+				"configName": "PrintGCDateStamps",
+				"required": "false",
+				"type": "string",
+				"default": "8:-XX:+PrintGCDateStamps"
+			},
+			{
+				"name": "PrintTenuringDistribution",
+				"label": "JVM PrintTenuringDistribution",
+				"description": "PrintTenuringDistribution",
+				"configName": "PrintTenuringDistribution",
+				"required": "false",
+				"type": "string",
+				"default": "8:-XX:+PrintTenuringDistribution"
+			},
+			{
+				"name": "PrintGCApplicationStoppedTime",
+				"label": "JVM PrintGCApplicationStoppedTime",
+				"description": "PrintGCApplicationStoppedTime",
+				"configName": "PrintGCApplicationStoppedTime",
+				"required": "false",
+				"type": "string",
+				"default": "8:-XX:+PrintGCApplicationStoppedTime"
+			},
+			{
+				"name": "Xloggc",
+				"label": "JVM Xloggc",
+				"description": "Xloggc",
+				"configName": "Xloggc",
+				"required": "false",
+				"type": "string",
+				"default": "8:-Xloggc:logs/gc.log"
+			},
+			{
+				"name": "UseGCLogFileRotation",
+				"label": "JVM UseGCLogFileRotation",
+				"description": "UseGCLogFileRotation",
+				"configName": "UseGCLogFileRotation",
+				"required": "false",
+				"type": "string",
+				"default": "8:-XX:+UseGCLogFileRotation"
+			},
+			{
+				"name": "NumberOfGCLogFiles",
+				"label": "JVM NumberOfGCLogFiles",
+				"description": "NumberOfGCLogFiles",
+				"configName": "NumberOfGCLogFiles",
+				"required": "false",
+				"type": "string",
+				"default": "8:-XX:NumberOfGCLogFiles=32"
+			},
+			{
+				"name": "GCLogFileSize",
+				"label": "JVM GCLogFileSize",
+				"description": "GCLogFileSize",
+				"configName": "GCLogFileSize",
+				"required": "false",
+				"type": "string",
+				"default": "8:-XX:GCLogFileSize=64m"
+			}
+		]
+	},{
+		"name": "ES_DATA_03",
+		"label": "Es Data_03",
+		"pluralLabel": "Elastic Search Data Node",
+		"jvmBased": true,
+		"startRunner": {
+			"program": "scripts/control.sh",
+			"args": ["start"],
+			"environmentVariables" : {
+				"CURRENT_RULE" : "es-data03",
+                                "ES_LOG_DIR" : "${path_logs}",
+                                "ES_DATA_DIR" : "${path_data}"
+			}
+		},
+		"stopRunner" : {
+			"timeout" : "90000",
+			"runner" : {
+				"program" : "scripts/control.sh",
+				"args" : ["stop"],
+				"environmentVariables" : {
+					"CURRENT_RULE" : "es-data03"
+				}
+			}
+		},
+		"externalLink" : {
+			"name" : "ES_MASTER",
+			"label" : "Es Header",
+			"url" : "http://${host}:${http_port}:/_plugin/head"
+		},
+		"topology" : {
+			"minInstances" : "0",
+			"requiresOddNumberOfInstances" : "false",
+			"placementRules" : [ ]
+		},
+		"logging" : {
+			"dir" : "${path_logs}",
+			"filename" : "${cluster_name}.log",
+			"modifiable" : true,
+			"configName" : "log.dir",
+			"loggingType" : "log4j"
+		},
+		"configWriter": {
+			"generators": [
+			{
+				"filename": "elasticsearch.properties",
+				"configFormat": "properties",
+				"includedParams": [
+					"cluster_name",
+					"path_data",
+					"path_logs",
+					"max_local_storage_nodes",
+					"initial_master_nodes",
+					"discovery.seed_hosts",
+					"http_port",
+					"http_cors_enabled",
+					"http_cors_allow_origin",
+					"network_hosts"
+				],
+				"additionalConfigs" : [
+				{
+					"key" : "node.name",
+					"value" : "${host}-data03"
+				},
+				{
+					"key" : "node.roles",
+					"value" : "[ data ]"
+				}
+				]
+			},
+			{
+				"filename": "jvm.properties",
+				"refreshable" : false,
+				"configFormat": "properties",
+				"includedParams": [
+					"Xms",
+					"Xmx",
+					"UseConcMarkSweepGC",
+					"CMSInitiatingOccupancyFraction",
+					"UseCMSInitiatingOccupancyOnly",
+					"UseG1GC",
+					"G1ReservePercent",
+					"InitiatingHeapOccupancyPercent",
+					"HeapDumpOnOutOfMemoryError",
+					"FatalErrorLogs",
+					"PrintGCDetails",
+					"PrintGCDateStamps",
+					"PrintTenuringDistribution",
+					"PrintGCApplicationStoppedTime",
+					"Xloggc",
+					"UseGCLogFileRotation",
+					"NumberOfGCLogFiles",
+					"GCLogFileSize"	
+				]
+			}
+			]
+		},
+		"parameters": [
+			{
+				"name": "network_hosts",
+				"label": "network_hosts",
+				"description": "Set a custom host for HTTP",
+				"configName": "network.host",
+				"required": "true",
+				"type": "string",
+				"default": "0.0.0.0"
+			},
+			{
+				"name": "http_port",
+				"label": "HTTP port",
+				"description": "Set a custom port for HTTP",
+				"configName": "http.port",
+				"required": "true",
+				"type": "long",
+				"default": "9203"
+			},
+			{
+				"name": "path_data",
+				"label": "Path to data directory",
+				"description": "Path to directory where to store the data (separate multiple locations by comma)",
+				"configName": "path.data",
+				"required": "true",
+				"type": "string",
+				"pathType": "localDataDir",
+				"default": "/var/lib/elasticsearch/es-data03"
+			},
+			{
+				"name": "path_logs",
+				"label": "Path to logs directory",
+				"description": "Path to log files",
+				"configName": "path.logs",
+				"required": "true",
+				"type": "path",
+				"pathType": "localDataDir",
+				"default": "/var/log/elasticsearch/es-data03"
+			},
+			{
+				"name": "Xms",
+				"label": "JVM Xms",
+				"description": "Xms represents the initial size of total heap space",
+				"configName": "Xms",
+				"required": "true",
+				"type": "string",
+				"default": "-Xms2g"
+			},
+			{
+				"name": "Xmx",
+				"label": "JVM Xmx",
+				"description": "Xms represents the maximum size of total heap space",
+				"configName": "Xmx",
+				"required": "true",
+				"type": "string",
+				"default": "-Xmx2g"
+			},
+			{
+				"name": "UseConcMarkSweepGC",
+				"label": "JVM UseConcMarkSweepGC",
+				"description": "Enable ConcurrentMarkSweep (CMS)",
+				"configName": "UseConcMarkSweepGC",
+				"required": "false",
+				"type": "string",
+				"default": "8-13:-XX:+UseConcMarkSweepGC"
+			},
+			{
+				"name": "CMSInitiatingOccupancyFraction",
+				"label": "JVM CMSInitiatingOccupancyFraction",
+				"description": "CMS Initiating Occupancy Fraction",
+				"configName": "CMSInitiatingOccupancyFraction",
+				"required": "false",
+				"type": "string",
+				"default": "8-13:-XX:CMSInitiatingOccupancyFraction=75"
+			},
+			{
+				"name": "UseCMSInitiatingOccupancyOnly",
+				"label": "JVM UseCMSInitiatingOccupancyOnly",
+				"description": "Use CMS Initiating Occupancy Only",
+				"configName": "UseCMSInitiatingOccupancyOnly",
+				"required": "false",
+				"type": "string",
+				"default": "8-13:-XX:+UseCMSInitiatingOccupancyOnly"
+			},
+			{
+				"name": "UseG1GC",
+				"label": "JVM UseG1GC",
+				"description": "Enable G1GC (G1)",
+				"configName": "UseG1GC",
+				"required": "false",
+				"type": "string",
+				"default": "14-:-XX:+UseG1GC"
+			},
+			{
+				"name": "G1ReservePercent",
+				"label": "JVM G1ReservePercent",
+				"description": "G1ReservePercent",
+				"configName": "G1ReservePercent",
+				"required": "false",
+				"type": "string",
+				"default": "14-:-XX:G1ReservePercent=25"
+			},
+			{
+				"name": "InitiatingHeapOccupancyPercent",
+				"label": "JVM InitiatingHeapOccupancyPercent",
+				"description": "InitiatingHeapOccupancyPercent",
+				"configName": "InitiatingHeapOccupancyPercent",
+				"required": "false",
+				"type": "string",
+				"default": "14-:-XX:InitiatingHeapOccupancyPercent=30"
+			},
+			{
+				"name": "HeapDumpOnOutOfMemoryError",
+				"label": "JVM HeapDumpOnOutOfMemoryError",
+				"description": "Generate a heap dump when an allocation from the Java heap fails",
+				"configName": "HeapDumpOnOutOfMemoryError",
+				"required": "false",
+				"type": "string",
+				"default": "-XX:+HeapDumpOnOutOfMemoryError"
+			},
+			{
+				"name": "FatalErrorLogs",
+				"label": "JVM FatalErrorLogs",
+				"description": "specify an alternative path for JVM fatal error logs",
+				"configName": "ErrorFile",
+				"required": "false",
+				"type": "string",
+				"default": "-XX:ErrorFile=logs/hs_err_pid%p.log"
+			},
+			{
+				"name": "PrintGCDetails",
+				"label": "JVM PrintGCDetails",
+				"description": "PrintGCDetails",
+				"configName": "PrintGCDetails",
+				"required": "false",
+				"type": "string",
+				"default": "8:-XX:+PrintGCDetails"
+			},
+			{
+				"name": "PrintGCDateStamps",
+				"label": "JVM PrintGCDateStamps",
+				"description": "PrintGCDateStamps",
+				"configName": "PrintGCDateStamps",
+				"required": "false",
+				"type": "string",
+				"default": "8:-XX:+PrintGCDateStamps"
+			},
+			{
+				"name": "PrintTenuringDistribution",
+				"label": "JVM PrintTenuringDistribution",
+				"description": "PrintTenuringDistribution",
+				"configName": "PrintTenuringDistribution",
+				"required": "false",
+				"type": "string",
+				"default": "8:-XX:+PrintTenuringDistribution"
+			},
+			{
+				"name": "PrintGCApplicationStoppedTime",
+				"label": "JVM PrintGCApplicationStoppedTime",
+				"description": "PrintGCApplicationStoppedTime",
+				"configName": "PrintGCApplicationStoppedTime",
+				"required": "false",
+				"type": "string",
+				"default": "8:-XX:+PrintGCApplicationStoppedTime"
+			},
+			{
+				"name": "Xloggc",
+				"label": "JVM Xloggc",
+				"description": "Xloggc",
+				"configName": "Xloggc",
+				"required": "false",
+				"type": "string",
+				"default": "8:-Xloggc:logs/gc.log"
+			},
+			{
+				"name": "UseGCLogFileRotation",
+				"label": "JVM UseGCLogFileRotation",
+				"description": "UseGCLogFileRotation",
+				"configName": "UseGCLogFileRotation",
+				"required": "false",
+				"type": "string",
+				"default": "8:-XX:+UseGCLogFileRotation"
+			},
+			{
+				"name": "NumberOfGCLogFiles",
+				"label": "JVM NumberOfGCLogFiles",
+				"description": "NumberOfGCLogFiles",
+				"configName": "NumberOfGCLogFiles",
+				"required": "false",
+				"type": "string",
+				"default": "8:-XX:NumberOfGCLogFiles=32"
+			},
+			{
+				"name": "GCLogFileSize",
+				"label": "JVM GCLogFileSize",
+				"description": "GCLogFileSize",
+				"configName": "GCLogFileSize",
+				"required": "false",
+				"type": "string",
+				"default": "8:-XX:GCLogFileSize=64m"
+			}
+		]
+	},{
+		"name": "ES_INGEST_01",
+		"label": "Es Ingest_01",
+		"pluralLabel": "Elastic Search ingest Node",
+		"jvmBased": true,
+		"startRunner": {
+			"program": "scripts/control.sh",
+			"args": ["start"],
+			"environmentVariables" : {
+				"CURRENT_RULE" : "es-ingest01",
+                                "ES_LOG_DIR" : "${path_logs}",
+                                "ES_DATA_DIR" : "${path_data}"
+			}
+		},
+		"stopRunner" : {
+			"timeout" : "90000",
+			"runner" : {
+				"program" : "scripts/control.sh",
+				"args" : ["stop"],
+				"environmentVariables" : {
+					"CURRENT_RULE" : "es-ingest01"
+				}
+			}
+		},
+		"externalLink" : {
+			"name" : "ES_MASTER",
+			"label" : "Es Header",
+			"url" : "http://${host}:${http_port}:/_plugin/head"
+		},		
+		"topology" : {
+            "minInstances" : "0",
+            "requiresOddNumberOfInstances" : "false",
+            "placementRules" : [ ]
+        },
+		"logging" : {
+			"dir" : "${path_logs}",
+			"filename" : "${cluster_name}.log",
+			"modifiable" : true,
+			"configName" : "log.dir",
+			"loggingType" : "log4j"
+		},
+		"configWriter": {
+			"generators": [
+			{
+				"filename": "elasticsearch.properties",
+				"configFormat": "properties",
+				"includedParams": [
+					"cluster_name",
+					"path_data",
+					"path_logs",
+					"max_local_storage_nodes",
+					"initial_master_nodes",
+					"discovery.seed_hosts",
+					"http_port",
+					"http_cors_enabled",
+					"http_cors_allow_origin",
+					"network_hosts"
+				],
+				"additionalConfigs" : [
+				{
+					"key" : "node.name",
+					"value" : "${host}-ingest01"
+				},
+				{
+					"key" : "node.roles",
+					"value" : "[ ingest ]"
+				}
+				]
+			},
+			{
+				"filename": "jvm.properties",
+				"refreshable" : false,
+				"configFormat": "properties",
+				"includedParams": [
+					"Xms",
+					"Xmx",
+					"UseConcMarkSweepGC",
+					"CMSInitiatingOccupancyFraction",
+					"UseCMSInitiatingOccupancyOnly",
+					"UseG1GC",
+					"G1ReservePercent",
+					"InitiatingHeapOccupancyPercent",
+					"HeapDumpOnOutOfMemoryError",
+					"FatalErrorLogs",
+					"PrintGCDetails",
+					"PrintGCDateStamps",
+					"PrintTenuringDistribution",
+					"PrintGCApplicationStoppedTime",
+					"Xloggc",
+					"UseGCLogFileRotation",
+					"NumberOfGCLogFiles",
+					"GCLogFileSize"	
+				]
+			}
+			]
+		},
+		"parameters": [
+			{
+				"name": "network_hosts",
+				"label": "network_hosts",
+				"description": "Set a custom host for HTTP",
+				"configName": "network.host",
+				"required": "true",
+				"type": "string",
+				"default": "0.0.0.0"
+			},
+			{
+				"name": "http_port",
+				"label": "HTTP port",
+				"description": "Set a custom port for HTTP",
+				"configName": "http.port",
+				"required": "true",
+				"type": "long",
+				"default": "9204"
+			},
+			{
+				"name": "path_data",
+				"label": "Path to data directory",
+				"description": "Path to directory where to store the data (separate multiple locations by comma)",
+				"configName": "path.data",
+				"required": "true",
+				"type": "string",
+				"pathType": "localDataDir",
+				"default": "/var/lib/elasticsearch/es-ingest01"
+			},
+			{
+				"name": "path_logs",
+				"label": "Path to logs directory",
+				"description": "Path to log files",
+				"configName": "path.logs",
+				"required": "true",
+				"type": "path",
+				"pathType": "localDataDir",
+				"default": "/var/log/elasticsearch/es-ingest01"
+			},
+			{
+				"name": "Xms",
+				"label": "JVM Xms",
+				"description": "Xms represents the initial size of total heap space",
+				"configName": "Xms",
+				"required": "true",
+				"type": "string",
+				"default": "-Xms2g"
+			},
+			{
+				"name": "Xmx",
+				"label": "JVM Xmx",
+				"description": "Xms represents the maximum size of total heap space",
+				"configName": "Xmx",
+				"required": "true",
+				"type": "string",
+				"default": "-Xmx2g"
+			},
+			{
+				"name": "UseConcMarkSweepGC",
+				"label": "JVM UseConcMarkSweepGC",
+				"description": "Enable ConcurrentMarkSweep (CMS)",
+				"configName": "UseConcMarkSweepGC",
+				"required": "false",
+				"type": "string",
+				"default": "8-13:-XX:+UseConcMarkSweepGC"
+			},
+			{
+				"name": "CMSInitiatingOccupancyFraction",
+				"label": "JVM CMSInitiatingOccupancyFraction",
+				"description": "CMS Initiating Occupancy Fraction",
+				"configName": "CMSInitiatingOccupancyFraction",
+				"required": "false",
+				"type": "string",
+				"default": "8-13:-XX:CMSInitiatingOccupancyFraction=75"
+			},
+			{
+				"name": "UseCMSInitiatingOccupancyOnly",
+				"label": "JVM UseCMSInitiatingOccupancyOnly",
+				"description": "Use CMS Initiating Occupancy Only",
+				"configName": "UseCMSInitiatingOccupancyOnly",
+				"required": "false",
+				"type": "string",
+				"default": "8-13:-XX:+UseCMSInitiatingOccupancyOnly"
+			},
+			{
+				"name": "UseG1GC",
+				"label": "JVM UseG1GC",
+				"description": "Enable G1GC (G1)",
+				"configName": "UseG1GC",
+				"required": "false",
+				"type": "string",
+				"default": "14-:-XX:+UseG1GC"
+			},
+			{
+				"name": "G1ReservePercent",
+				"label": "JVM G1ReservePercent",
+				"description": "G1ReservePercent",
+				"configName": "G1ReservePercent",
+				"required": "false",
+				"type": "string",
+				"default": "14-:-XX:G1ReservePercent=25"
+			},
+			{
+				"name": "InitiatingHeapOccupancyPercent",
+				"label": "JVM InitiatingHeapOccupancyPercent",
+				"description": "InitiatingHeapOccupancyPercent",
+				"configName": "InitiatingHeapOccupancyPercent",
+				"required": "false",
+				"type": "string",
+				"default": "14-:-XX:InitiatingHeapOccupancyPercent=30"
+			},
+			{
+				"name": "HeapDumpOnOutOfMemoryError",
+				"label": "JVM HeapDumpOnOutOfMemoryError",
+				"description": "Generate a heap dump when an allocation from the Java heap fails",
+				"configName": "HeapDumpOnOutOfMemoryError",
+				"required": "false",
+				"type": "string",
+				"default": "-XX:+HeapDumpOnOutOfMemoryError"
+			},
+			{
+				"name": "FatalErrorLogs",
+				"label": "JVM FatalErrorLogs",
+				"description": "specify an alternative path for JVM fatal error logs",
+				"configName": "ErrorFile",
+				"required": "false",
+				"type": "string",
+				"default": "-XX:ErrorFile=logs/hs_err_pid%p.log"
+			},
+			{
+				"name": "PrintGCDetails",
+				"label": "JVM PrintGCDetails",
+				"description": "PrintGCDetails",
+				"configName": "PrintGCDetails",
+				"required": "false",
+				"type": "string",
+				"default": "8:-XX:+PrintGCDetails"
+			},
+			{
+				"name": "PrintGCDateStamps",
+				"label": "JVM PrintGCDateStamps",
+				"description": "PrintGCDateStamps",
+				"configName": "PrintGCDateStamps",
+				"required": "false",
+				"type": "string",
+				"default": "8:-XX:+PrintGCDateStamps"
+			},
+			{
+				"name": "PrintTenuringDistribution",
+				"label": "JVM PrintTenuringDistribution",
+				"description": "PrintTenuringDistribution",
+				"configName": "PrintTenuringDistribution",
+				"required": "false",
+				"type": "string",
+				"default": "8:-XX:+PrintTenuringDistribution"
+			},
+			{
+				"name": "PrintGCApplicationStoppedTime",
+				"label": "JVM PrintGCApplicationStoppedTime",
+				"description": "PrintGCApplicationStoppedTime",
+				"configName": "PrintGCApplicationStoppedTime",
+				"required": "false",
+				"type": "string",
+				"default": "8:-XX:+PrintGCApplicationStoppedTime"
+			},
+			{
+				"name": "Xloggc",
+				"label": "JVM Xloggc",
+				"description": "Xloggc",
+				"configName": "Xloggc",
+				"required": "false",
+				"type": "string",
+				"default": "8:-Xloggc:logs/gc.log"
+			},
+			{
+				"name": "UseGCLogFileRotation",
+				"label": "JVM UseGCLogFileRotation",
+				"description": "UseGCLogFileRotation",
+				"configName": "UseGCLogFileRotation",
+				"required": "false",
+				"type": "string",
+				"default": "8:-XX:+UseGCLogFileRotation"
+			},
+			{
+				"name": "NumberOfGCLogFiles",
+				"label": "JVM NumberOfGCLogFiles",
+				"description": "NumberOfGCLogFiles",
+				"configName": "NumberOfGCLogFiles",
+				"required": "false",
+				"type": "string",
+				"default": "8:-XX:NumberOfGCLogFiles=32"
+			},
+			{
+				"name": "GCLogFileSize",
+				"label": "JVM GCLogFileSize",
+				"description": "GCLogFileSize",
+				"configName": "GCLogFileSize",
+				"required": "false",
+				"type": "string",
+				"default": "8:-XX:GCLogFileSize=64m"
+			}
+		]
+	},{
+		"name": "ES_CUSTOMER_01",
+		"label": "Es Customer_01",
+		"pluralLabel": "Elastic Search customer Node",
+		"jvmBased": true,
+		"startRunner": {
+			"program": "scripts/control.sh",
+			"args": ["start"],
+			"environmentVariables" : {
+				"CURRENT_RULE" : "es-customer01",
+                                "ES_LOG_DIR" : "${path_logs}",
+                                "ES_DATA_DIR" : "${path_data}"
+			}
+		},
+		"stopRunner" : {
+			"timeout" : "90000",
+			"runner" : {
+				"program" : "scripts/control.sh",
+				"args" : ["stop"],
+				"environmentVariables" : {
+					"CURRENT_RULE" : "es-customer01"
+				}
+			}
+		},
+		"externalLink" : {
+			"name" : "ES_MASTER",
+			"label" : "Es Header",
+			"url" : "http://${host}:${http_port}:/_plugin/head"
+		},
+		"topology" : {
+            "minInstances" : "0",
+            "requiresOddNumberOfInstances" : "false",
+            "placementRules" : [ ]
+        },
+		"logging" : {
+			"dir" : "${path_logs}",
+			"filename" : "${cluster_name}.log",
+			"modifiable" : true,
+			"configName" : "log.dir",
+			"loggingType" : "log4j"
+		},
+		"configWriter": {
+			"generators": [
+			{
+				"filename": "elasticsearch.properties",
+				"configFormat": "properties",
+				"includedParams": [
+					"cluster_name",
+					"path_data",
+					"path_logs",
+					"max_local_storage_nodes",
+					"initial_master_nodes",
+					"discovery.seed_hosts",
+					"http_port",
+					"http_cors_enabled",
+					"http_cors_allow_origin",
+					"network_hosts",
+					"node_roles"
+				],
+				"additionalConfigs" : [
+				{
+					"key" : "node.name",
+					"value" : "${host}-customer01"
+				}
+				]
+			},
+			{
+				"filename": "jvm.properties",
+				"refreshable" : false,
+				"configFormat": "properties",
+				"includedParams": [
+					"Xms",
+					"Xmx",
+					"UseConcMarkSweepGC",
+					"CMSInitiatingOccupancyFraction",
+					"UseCMSInitiatingOccupancyOnly",
+					"UseG1GC",
+					"G1ReservePercent",
+					"InitiatingHeapOccupancyPercent",
+					"HeapDumpOnOutOfMemoryError",
+					"FatalErrorLogs",
+					"PrintGCDetails",
+					"PrintGCDateStamps",
+					"PrintTenuringDistribution",
+					"PrintGCApplicationStoppedTime",
+					"Xloggc",
+					"UseGCLogFileRotation",
+					"NumberOfGCLogFiles",
+					"GCLogFileSize"	
+				]
+			}
+			]
+		},
+		"parameters": [
+			{
+				"name": "network_hosts",
+				"label": "network_hosts",
+				"description": "Set a custom host for HTTP",
+				"configName": "network.host",
+				"required": "true",
+				"type": "string",
+				"default": "0.0.0.0"
+			},
+			{
+				"name": "http_port",
+				"label": "HTTP port",
+				"description": "Set a custom port for HTTP",
+				"configName": "http.port",
+				"required": "true",
+				"type": "long",
+				"default": "9205"
+			},
+			{
+				"name": "node_roles",
+				"label": "node_roles",
+				"description": "Set a custom roles",
+				"configName": "node.roles",
+				"required": "true",
+				"type": "string",
+				"default": "[ master,data ]"
+			},
+			{
+				"name": "path_data",
+				"label": "Path to data directory",
+				"description": "Path to directory where to store the data (separate multiple locations by comma)",
+				"configName": "path.data",
+				"required": "true",
+				"type": "string",
+				"pathType": "localDataDir",
+				"default": "/var/lib/elasticsearch/es-customer01"
+			},
+			{
+				"name": "path_logs",
+				"label": "Path to logs directory",
+				"description": "Path to log files",
+				"configName": "path.logs",
+				"required": "true",
+				"type": "path",
+				"pathType": "localDataDir",
+				"default": "/var/log/elasticsearch/es-customer01"
+			},
+			{
+				"name": "Xms",
+				"label": "JVM Xms",
+				"description": "Xms represents the initial size of total heap space",
+				"configName": "Xms",
+				"required": "true",
+				"type": "string",
+				"default": "-Xms2g"
+			},
+			{
+				"name": "Xmx",
+				"label": "JVM Xmx",
+				"description": "Xms represents the maximum size of total heap space",
+				"configName": "Xmx",
+				"required": "true",
+				"type": "string",
+				"default": "-Xmx2g"
+			},
+			{
+				"name": "UseConcMarkSweepGC",
+				"label": "JVM UseConcMarkSweepGC",
+				"description": "Enable ConcurrentMarkSweep (CMS)",
+				"configName": "UseConcMarkSweepGC",
+				"required": "false",
+				"type": "string",
+				"default": "8-13:-XX:+UseConcMarkSweepGC"
+			},
+			{
+				"name": "CMSInitiatingOccupancyFraction",
+				"label": "JVM CMSInitiatingOccupancyFraction",
+				"description": "CMS Initiating Occupancy Fraction",
+				"configName": "CMSInitiatingOccupancyFraction",
+				"required": "false",
+				"type": "string",
+				"default": "8-13:-XX:CMSInitiatingOccupancyFraction=75"
+			},
+			{
+				"name": "UseCMSInitiatingOccupancyOnly",
+				"label": "JVM UseCMSInitiatingOccupancyOnly",
+				"description": "Use CMS Initiating Occupancy Only",
+				"configName": "UseCMSInitiatingOccupancyOnly",
+				"required": "false",
+				"type": "string",
+				"default": "8-13:-XX:+UseCMSInitiatingOccupancyOnly"
+			},
+			{
+				"name": "UseG1GC",
+				"label": "JVM UseG1GC",
+				"description": "Enable G1GC (G1)",
+				"configName": "UseG1GC",
+				"required": "false",
+				"type": "string",
+				"default": "14-:-XX:+UseG1GC"
+			},
+			{
+				"name": "G1ReservePercent",
+				"label": "JVM G1ReservePercent",
+				"description": "G1ReservePercent",
+				"configName": "G1ReservePercent",
+				"required": "false",
+				"type": "string",
+				"default": "14-:-XX:G1ReservePercent=25"
+			},
+			{
+				"name": "InitiatingHeapOccupancyPercent",
+				"label": "JVM InitiatingHeapOccupancyPercent",
+				"description": "InitiatingHeapOccupancyPercent",
+				"configName": "InitiatingHeapOccupancyPercent",
+				"required": "false",
+				"type": "string",
+				"default": "14-:-XX:InitiatingHeapOccupancyPercent=30"
+			},
+			{
+				"name": "HeapDumpOnOutOfMemoryError",
+				"label": "JVM HeapDumpOnOutOfMemoryError",
+				"description": "Generate a heap dump when an allocation from the Java heap fails",
+				"configName": "HeapDumpOnOutOfMemoryError",
+				"required": "false",
+				"type": "string",
+				"default": "-XX:+HeapDumpOnOutOfMemoryError"
+			},
+			{
+				"name": "FatalErrorLogs",
+				"label": "JVM FatalErrorLogs",
+				"description": "specify an alternative path for JVM fatal error logs",
+				"configName": "ErrorFile",
+				"required": "false",
+				"type": "string",
+				"default": "-XX:ErrorFile=logs/hs_err_pid%p.log"
+			},
+			{
+				"name": "PrintGCDetails",
+				"label": "JVM PrintGCDetails",
+				"description": "PrintGCDetails",
+				"configName": "PrintGCDetails",
+				"required": "false",
+				"type": "string",
+				"default": "8:-XX:+PrintGCDetails"
+			},
+			{
+				"name": "PrintGCDateStamps",
+				"label": "JVM PrintGCDateStamps",
+				"description": "PrintGCDateStamps",
+				"configName": "PrintGCDateStamps",
+				"required": "false",
+				"type": "string",
+				"default": "8:-XX:+PrintGCDateStamps"
+			},
+			{
+				"name": "PrintTenuringDistribution",
+				"label": "JVM PrintTenuringDistribution",
+				"description": "PrintTenuringDistribution",
+				"configName": "PrintTenuringDistribution",
+				"required": "false",
+				"type": "string",
+				"default": "8:-XX:+PrintTenuringDistribution"
+			},
+			{
+				"name": "PrintGCApplicationStoppedTime",
+				"label": "JVM PrintGCApplicationStoppedTime",
+				"description": "PrintGCApplicationStoppedTime",
+				"configName": "PrintGCApplicationStoppedTime",
+				"required": "false",
+				"type": "string",
+				"default": "8:-XX:+PrintGCApplicationStoppedTime"
+			},
+			{
+				"name": "Xloggc",
+				"label": "JVM Xloggc",
+				"description": "Xloggc",
+				"configName": "Xloggc",
+				"required": "false",
+				"type": "string",
+				"default": "8:-Xloggc:logs/gc.log"
+			},
+			{
+				"name": "UseGCLogFileRotation",
+				"label": "JVM UseGCLogFileRotation",
+				"description": "UseGCLogFileRotation",
+				"configName": "UseGCLogFileRotation",
+				"required": "false",
+				"type": "string",
+				"default": "8:-XX:+UseGCLogFileRotation"
+			},
+			{
+				"name": "NumberOfGCLogFiles",
+				"label": "JVM NumberOfGCLogFiles",
+				"description": "NumberOfGCLogFiles",
+				"configName": "NumberOfGCLogFiles",
+				"required": "false",
+				"type": "string",
+				"default": "8:-XX:NumberOfGCLogFiles=32"
+			},
+			{
+				"name": "GCLogFileSize",
+				"label": "JVM GCLogFileSize",
+				"description": "GCLogFileSize",
+				"configName": "GCLogFileSize",
+				"required": "false",
+				"type": "string",
+				"default": "8:-XX:GCLogFileSize=64m"
+			}
+		]
+	}],
+	"parameters": [
+		{
+			"name": "max_local_storage_nodes",
+			"label": "max_local_storage_nodes",
+			"description": "max_local_storage_nodes",
+			"configName": "node.max_local_storage_nodes",
+			"required": "false",
+			"type": "long",
+			"default": "6"
+		},
+		{
+			"name": "initial_master_nodes",
+			"label": "master-eligible nodes",
+			"description": "master-eligible nodes",
+			"configName": "cluster.initial_master_nodes",
+			"required": "true",
+			"configurableInWizard": true,
+			"type": "string"
+		},
+		{
+			"name": "discovery.seed_hosts",
+			"label": "discovery.seed_hosts",
+			"description": "discovery.seed_hosts setting to provide a list of other nodes in the cluster that are master-eligible and likely to be live and contactable in order to seed the discovery process",
+			"configName": "discovery.seed_hosts",
+			"required": "true",
+			"configurableInWizard": true,
+			"type": "string"
+		},
+		{
+			"name": "cluster_name",
+			"label": "cluster.name",
+			"description": "Name of Cluster",
+			"configName": "cluster.name",
+			"required": "true",
+			"type": "string",
+			"configurableInWizard": true,
+			"default": "es-data-lakes"
+		},
+		{
+			"name": "path_data",
+			"label": "Path to data directory",
+			"description": "Path to directory where to store the data (separate multiple locations by comma)",
+			"configName": "path.data",
+			"required": "true",
+			"type": "string",
+			"pathType": "localDataDir",
+			"default": "/var/lib/elasticsearch/"
+		},
+		{
+			"name": "path_logs",
+			"label": "Path to logs directory",
+			"description": "Path to log files",
+			"configName": "path.logs",
+			"required": "true",
+			"type": "path",
+			"pathType": "localDataDir",
+			"default": "/var/log/elasticsearch/"
+		},
+		{
+			"name": "http_cors_enabled",
+			"label": "Cross-origin resource sharing",
+			"description": "Enable or disable cross-origin resource sharing",
+			"configName": "http.cors.enabled",
+			"required": "true",
+			"type": "boolean",
+			"default": "true"
+		},
+		{
+			"name": "http_cors_allow_origin",
+			"label": "Cross-origin allow pattern",
+			"description": "Which origins to allow. Defaults to no origins allowed. If you prepend and append a / to the value, this will be treated as a regular expression, allowing you to support HTTP and HTTPs. for example using /https?:\/\/localhost(:[0-9]+)?/ would return the request header appropriately in both cases. * is a valid value but is considered a security risk as your elasticsearch instance is open to cross origin requests from anywhere.",
+			"configName": "http.cors.allow-origin",
+			"required": "true",
+			"type": "string",
+			"default": "/.*/"
+		},
+		{
+			"name": "Xms",
+			"label": "JVM Xms",
+			"description": "Xms represents the initial size of total heap space",
+			"configName": "Xms",
+			"required": "true",
+			"type": "string",
+			"default": "-Xms2g"
+		},
+		{
+			"name": "Xmx",
+			"label": "JVM Xmx",
+			"description": "Xms represents the maximum size of total heap space",
+			"configName": "Xmx",
+			"required": "true",
+			"type": "string",
+			"default": "-Xmx2g"
+		},
+			{
+				"name": "UseConcMarkSweepGC",
+				"label": "JVM UseConcMarkSweepGC",
+				"description": "Enable ConcurrentMarkSweep (CMS)",
+				"configName": "UseConcMarkSweepGC",
+				"required": "false",
+				"type": "string",
+				"default": "8-13:-XX:+UseConcMarkSweepGC"
+			},
+			{
+				"name": "CMSInitiatingOccupancyFraction",
+				"label": "JVM CMSInitiatingOccupancyFraction",
+				"description": "CMS Initiating Occupancy Fraction",
+				"configName": "CMSInitiatingOccupancyFraction",
+				"required": "false",
+				"type": "string",
+				"default": "8-13:-XX:CMSInitiatingOccupancyFraction=75"
+			},
+			{
+				"name": "UseCMSInitiatingOccupancyOnly",
+				"label": "JVM UseCMSInitiatingOccupancyOnly",
+				"description": "Use CMS Initiating Occupancy Only",
+				"configName": "UseCMSInitiatingOccupancyOnly",
+				"required": "false",
+				"type": "string",
+				"default": "8-13:-XX:+UseCMSInitiatingOccupancyOnly"
+			},
+			{
+				"name": "UseG1GC",
+				"label": "JVM UseG1GC",
+				"description": "Enable G1GC (G1)",
+				"configName": "UseG1GC",
+				"required": "false",
+				"type": "string",
+				"default": "14-:-XX:+UseG1GC"
+			},
+			{
+				"name": "G1ReservePercent",
+				"label": "JVM G1ReservePercent",
+				"description": "G1ReservePercent",
+				"configName": "G1ReservePercent",
+				"required": "false",
+				"type": "string",
+				"default": "14-:-XX:G1ReservePercent=25"
+			},
+			{
+				"name": "InitiatingHeapOccupancyPercent",
+				"label": "JVM InitiatingHeapOccupancyPercent",
+				"description": "InitiatingHeapOccupancyPercent",
+				"configName": "InitiatingHeapOccupancyPercent",
+				"required": "false",
+				"type": "string",
+				"default": "14-:-XX:InitiatingHeapOccupancyPercent=30"
+			},
+			{
+				"name": "HeapDumpOnOutOfMemoryError",
+				"label": "JVM HeapDumpOnOutOfMemoryError",
+				"description": "Generate a heap dump when an allocation from the Java heap fails",
+				"configName": "HeapDumpOnOutOfMemoryError",
+				"required": "false",
+				"type": "string",
+				"default": "-XX:+HeapDumpOnOutOfMemoryError"
+			},
+			{
+				"name": "FatalErrorLogs",
+				"label": "JVM FatalErrorLogs",
+				"description": "specify an alternative path for JVM fatal error logs",
+				"configName": "ErrorFile",
+				"required": "false",
+				"type": "string",
+				"default": "-XX:ErrorFile=logs/hs_err_pid%p.log"
+			},
+			{
+				"name": "PrintGCDetails",
+				"label": "JVM PrintGCDetails",
+				"description": "PrintGCDetails",
+				"configName": "PrintGCDetails",
+				"required": "false",
+				"type": "string",
+				"default": "8:-XX:+PrintGCDetails"
+			},
+			{
+				"name": "PrintGCDateStamps",
+				"label": "JVM PrintGCDateStamps",
+				"description": "PrintGCDateStamps",
+				"configName": "PrintGCDateStamps",
+				"required": "false",
+				"type": "string",
+				"default": "8:-XX:+PrintGCDateStamps"
+			},
+			{
+				"name": "PrintTenuringDistribution",
+				"label": "JVM PrintTenuringDistribution",
+				"description": "PrintTenuringDistribution",
+				"configName": "PrintTenuringDistribution",
+				"required": "false",
+				"type": "string",
+				"default": "8:-XX:+PrintTenuringDistribution"
+			},
+			{
+				"name": "PrintGCApplicationStoppedTime",
+				"label": "JVM PrintGCApplicationStoppedTime",
+				"description": "PrintGCApplicationStoppedTime",
+				"configName": "PrintGCApplicationStoppedTime",
+				"required": "false",
+				"type": "string",
+				"default": "8:-XX:+PrintGCApplicationStoppedTime"
+			},
+			{
+				"name": "Xloggc",
+				"label": "JVM Xloggc",
+				"description": "Xloggc",
+				"configName": "Xloggc",
+				"required": "false",
+				"type": "string",
+				"default": "8:-Xloggc:logs/gc.log"
+			},
+			{
+				"name": "UseGCLogFileRotation",
+				"label": "JVM UseGCLogFileRotation",
+				"description": "UseGCLogFileRotation",
+				"configName": "UseGCLogFileRotation",
+				"required": "false",
+				"type": "string",
+				"default": "8:-XX:+UseGCLogFileRotation"
+			},
+			{
+				"name": "NumberOfGCLogFiles",
+				"label": "JVM NumberOfGCLogFiles",
+				"description": "NumberOfGCLogFiles",
+				"configName": "NumberOfGCLogFiles",
+				"required": "false",
+				"type": "string",
+				"default": "8:-XX:NumberOfGCLogFiles=32"
+			},
+			{
+				"name": "GCLogFileSize",
+				"label": "JVM GCLogFileSize",
+				"description": "GCLogFileSize",
+				"configName": "GCLogFileSize",
+				"required": "false",
+				"type": "string",
+				"default": "8:-XX:GCLogFileSize=64m"
+			}	
+	]
+}

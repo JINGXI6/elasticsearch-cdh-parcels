@@ -1,0 +1,74 @@
+#!/bin/bash
+
+#先进行目录判断，判断lib目录是否存在elasticsearch目录,也可以离线下载es7.9到lib目录并重命名为elasticsearch
+
+shift $(($OPTIND - 1))
+
+current_path=$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)
+eslib_dir=$current_path/lib/elasticsearch/
+par_dir=$(dirname $current_path)
+
+parcels(){
+	# 判断打包目录是否存在
+	target=$current_path/target/
+
+	if [ ! -d $target ];then
+        	mkdir $target
+	fi
+
+	if [ -f $current_path/lib/elasticsearch-7.9.0-linux-x86_64.tar.gz ];then
+		echo "untar. es"
+		untar
+	fi
+
+	if [ ! -d $eslib_dir ];then
+        	echo "download es..."
+		downloadEs7_9
+		untar
+	fi
+
+	config
+	cd $par_dir
+	tar zcvf $current_path/target/ELASTICSEARCH-7.9.0-el7.parcel ELASTICSEARCH-7.9.0/ --owner=root --group=root	
+}
+
+
+
+
+downloadEs7_9(){
+	esdown_url=https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.9.0-linux-x86_64.tar.gz
+	wget $esdown_url -P $current_path/lib/
+}
+
+
+untar(){
+	tar -zxvf $current_path/lib/elasticsearch-7.9.0-linux-x86_64.tar.gz -C $current_path/lib/
+	mv $current_path/lib/elasticsearch-7.9.0 $current_path/lib/elasticsearch
+	rm $current_path/lib/elasticsearch-7.9.0-linux-x86_64.tar.gz
+}
+
+
+config(){
+	cp $current_path/config/ -Rf $current_path/lib/elasticsearch/
+}
+
+clean(){
+	# 判断打包目录是否存在
+        target=$current_path/target/
+	if [ -d $target ];then
+        	rm -r $target
+        fi
+}
+
+
+case "$1" in
+    package)
+        parcels
+        ;;
+    clean)
+	clean
+	;;
+    *)
+        echo "Usage building parcels {package|clean}"
+        ;;
+esac

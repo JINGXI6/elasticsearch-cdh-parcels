@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "name": "ELASTICSEARCH",
+  "version": "7.9.0",
+  "extraVersionInfo": {
+    "fullVersion": "7.9.0",
+    "baseVersion": "7.9.0",
+    "patchCount": "0"
+  },
+  "depends": "CDH (>= 5.2), CDH (<< 7.0)",
+  "setActiveSymlink": true,
+  "scripts": {
+    "defines": "elasticsearch_env.sh"
+  },
+  "packages": [
+    {
+      "name": "elasticsearch",
+      "version": "7.9.0"
+    }
+  ],
+  "components": [
+    {
+      "name": "sdc",
+      "version": "7.9.0",
+      "pkg_version": "7.9.0"
+    }
+  ],
+  "provides": [
+    "elasticsearch"
+  ],
+  "users": {
+    "elasticsearch": {
+      "longname": "NDC ELASTICSEARCH",
+      "home": "/var/lib/elasticsearch",
+      "shell": "/bin/bash",
+      "extra_groups": []
+    }
+  },
+  "groups": [
+    "elasticsearch"
+  ]
+}
