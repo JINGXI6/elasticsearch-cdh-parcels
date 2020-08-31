@@ -2,7 +2,7 @@
 
 # 传入本地cloudera父路径
 
-while getopts ":d:t:u:h" arg
+while getopts ":d:t:u:v:h" arg
 do
 	case $arg in
 		d)
@@ -14,12 +14,15 @@ do
 		u)
 			update_ext="$OPTARG"
 			;;
+		v)	
+			version="$OPTARG"
+			;;
 		h)
-			echo -e  "Option:\n  -h show this help message and exit\n  -d cdh dir\n  install -d /opt/cloudera -t all -u true"
+			echo -e  "Option:\n  -h show this help message and exit\n  -d cdh dir\n  /bin/bash install -d /opt/cloudera -t [all/csd/parcels] -u [true/false] -v [el7/el6]"
 			exit 1
 			;;
 		?)
-			echo "Contain unknown argument! Make sure transport argument is in list [-d -t -u -h]"
+			echo "Contain unknown argument! Make sure transport argument is in list [-d -t -u -v -h]"
 			exit 1
 			;;
 	esac
@@ -44,7 +47,7 @@ gen_manifest(){
 gen_sha(){
 
         file_hash=`grep -2 "ELASTICSEARCH-7.9.0"  $CLOUDERA_DIR/parcel-repo/manifest.json | awk '/hash/{print $2}' | sed 's/"//' | sed 's/",//'`
-	echo $file_hash >  $CLOUDERA_DIR/parcel-repo/ELASTICSEARCH-7.9.0-el7.parcel.sha
+	echo $file_hash >  $CLOUDERA_DIR/parcel-repo/ELASTICSEARCH-7.9.0-$version.parcel.sha
 
 }
 
@@ -52,10 +55,18 @@ gen_sha(){
 gen_parcels(){
 
         if [ ! -d $current_path/parcels/ELASTICSEARCH-7.9.0/target ];then
-                /bin/bash $current_path/parcels/ELASTICSEARCH-7.9.0/build package
-        elif [ ! -f $current_path/parcels/ELASTICSEARCH-7.9.0/target/ELASTICSEARCH-7.9.0-el7.parcel ];then
-                /bin/bash $current_path/parcels/ELASTICSEARCH-7.9.0/build package
-        fi
+		if [[ $version == "el6" ]];then
+                	/bin/bash $current_path/parcels/ELASTICSEARCH-7.9.0/build package6
+		elif [[ $version == "el7" ]];then
+			/bin/bash $current_path/parcels/ELASTICSEARCH-7.9.0/build package7
+		fi
+        elif [ ! -f $current_path/parcels/ELASTICSEARCH-7.9.0/target/ELASTICSEARCH-7.9.0-$version.parcel ];then
+                if [[ $version == "el6" ]];then
+                        /bin/bash $current_path/parcels/ELASTICSEARCH-7.9.0/build package6
+                elif [[ $version == "el7" ]];then
+                        /bin/bash $current_path/parcels/ELASTICSEARCH-7.9.0/build package7
+                fi        
+	fi
 }
 
 gen_csd(){
@@ -84,13 +95,14 @@ install_parcels(){
 	gen_parcels
 	parcels_dir=$CLOUDERA_DIR/parcel-repo/
 	echo "install parcels"
-	cp -f $current_path/parcels/ELASTICSEARCH-7.9.0/target/ELASTICSEARCH-7.9.0-el7.parcel $parcels_dir
+	
+	cp -f $current_path/parcels/ELASTICSEARCH-7.9.0/target/ELASTICSEARCH-7.9.0-$version.parcel $parcels_dir
 	echo "gen_manifest"
 	gen_manifest
 	echo "gen_sha"
 	gen_sha
-	chown cloudera-scm. -R $parcels_dir/ELASTICSEARCH-7.9.0-el7.parcel
-	chown cloudera-scm. -R $parcels_dir/ELASTICSEARCH-7.9.0-el7.parcel.sha
+	chown cloudera-scm. -R $parcels_dir/ELASTICSEARCH-7.9.0-$version.parcel
+	chown cloudera-scm. -R $parcels_dir/ELASTICSEARCH-7.9.0-$version.parcel.sha
 	chown cloudera-scm. -R $parcels_dir/manifest.json
 	echo "done!"
 }

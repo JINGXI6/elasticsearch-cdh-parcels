@@ -10,7 +10,7 @@ elasticsearch7.9 cdh-ext-parcels and single machine multi instance
 ## 使用方式
 
 ### 一键安装
-> /bin/bash install -d /opt/cloudera -t all -u true 
+> /bin/bash install -d /opt/cloudera -t all -u true -v el7
 
 ## 参数解释
 > -d 为cdh主节点本地源的父目录
@@ -18,6 +18,8 @@ elasticsearch7.9 cdh-ext-parcels and single machine multi instance
 > -t 为安装类型[csd,parcel,all],csd是将escsd安装到cdh中，需要重启cloudera-scm-server，parcel是将parcel安装到cdh集群中，不需要重启，all是将整个es包安装到cdh中
 
 > -u [true/false] 是否对parcels包进行更新，true适用于更改了配置，需要打包，false则用之前的缓存包更新集群，默认false
+
+> -v [el6/el7] 增加对el6支持，如果操作系统为RHEL6(Centos6.x)则-v el6，如果操作系统为RHEL7(Centos7.x)则 -v el7，改参数为必选项。
 
 ## ！必须指定 -d 参数指定目录安装
 
