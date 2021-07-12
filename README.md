@@ -1,7 +1,7 @@
 # elasticsearch-cdh-parcels
 elasticsearch7.9 cdh-ext-parcels and single machine multi instance
 
-# es7.9 parcels安装包
+# es7.9 parcels安装包 
 
 ## 角色分配
 > master/data/ingest/customer
